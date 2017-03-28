@@ -1,6 +1,7 @@
 
 #include "Policy.h"
 #include "HuntingPolicy.h"
+#include "Prey.h"
 #include <iostream>
 
 // Game Values
@@ -10,6 +11,7 @@ int rewards[50];
 
 // Agents
 HuntingPolicy _hunter;
+Prey prey;
 
 enum Objects
 {
@@ -34,7 +36,74 @@ void init()
 	
 	_hunter.SendObservation(OSelfX,1);
 	_hunter.SendObservation(OSelfY,1);
+	prey.SendObservation(OSelfX,5);
+	prey.SendObservation(OSelfX,5);
 
+}
+
+void getcheckvalues(int& xcheck, int& ycheck, int action)
+{
+	if(action == AUp) {
+		ycheck -= 1;
+	} else if(action == ADown) {
+		ycheck += 1;
+	} else if(action == ALeft) {
+		xcheck -= 1;
+	} else if(action == ARight) {
+		xcheck += 1;
+	}
+}
+
+int performactions()
+{
+		int action = prey.GetAction();
+		
+		int xToCheck = prey._posX, yToCheck = prey._posY;
+		
+		getcheckvalues(xToCheck, yToCheck, action);
+		
+		
+		if(yToCheck < 0 || yToCheck >= MAP_HEIGHT || xToCheck < 0 || xToCheck >= MAP_WIDTH) {
+			moveagent(prey, prey._posX, prey._posY);
+		} else if(_map[xToCheck][yToCheck] == UNothing) {
+			moveagent(prey, xToCheck, yToCheck);
+		} else if(_map[xToCheck][yToCheck] == UAgent) {
+			moveagent(prey, xToCheck, yToCheck);
+		} else if(_map[xToCheck][yToCheck] == UGoal) {
+		}
+		
+		action = _hunter.GetAction();
+		int reward = 0;
+		xToCheck = _hunter._posX, yToCheck = _hunter._posY;
+		
+		getcheckvalues(xToCheck, yToCheck, action);
+		
+		
+		if(yToCheck < 0 || yToCheck >= MAP_HEIGHT || xToCheck < 0 || xToCheck >= MAP_WIDTH) {
+			reward -= 100;
+			_totalReward += reward;
+			moveagent(_hunter, _hunter._posX, _hunter._posY);
+		} else if(_map[xToCheck][yToCheck] == UNothing) {
+			reward -= 10;
+			_totalReward += reward;
+			moveagent(_hunter, xToCheck, yToCheck);
+		} else if(_map[xToCheck][yToCheck] == UAgent) {
+			reward -= 50;
+			_totalReward += reward;
+			moveagent(_hunter, xToCheck, yToCheck);
+		} else if(_map[xToCheck][yToCheck] == UGoal) {
+			reward += 500;
+			_totalReward += reward;
+			moveagent(_hunter, 1, 1);
+			moveagent(prey,5,5);
+			//if(_gamesPlayed % 100 == 0) std::cout << _totalReward << " Reward for Game #" << _gamesPlayed << std::endl;
+			if(_gamesPlayed == 5000) done = true;
+			if(_gamesPlayed < 50) rewards[_gamesPlayed] = _totalReward;
+			_gamesPlayed++;
+			_totalReward = 0;
+			loops = 0;
+		}
+		return reward;
 }
 
 void moveagent(Policy& agent, int newX, int newY)
@@ -44,8 +113,8 @@ void moveagent(Policy& agent, int newX, int newY)
 	int prey = agent._posY;
 	
 	// Move Agent
-	_hunter.SendObservation(OSelfX,newX);
-	_hunter.SendObservation(OSelfY,newY);
+	agent.SendObservation(OSelfX,newX);
+	agent.SendObservation(OSelfY,newY);
 	
 	// Swap Tiles
 	int prev = _map[prex][prey];
@@ -64,46 +133,11 @@ void playgame()
 	int loops = 0;
 	while(!done && loops < 10000) 
 	{
-		int action = _hunter.GetAction();
-		int reward = 0;
-		int xToCheck = _hunter._posX, yToCheck = _hunter._posY;
+		loops++;
 		
-		if(action == AUp) {
-			yToCheck = _hunter._posY - 1;
-		} else if(action == ADown) {
-			yToCheck = _hunter._posY + 1;
-		} else if(action == ALeft) {
-			xToCheck = _hunter._posX - 1;
-		} else if(action == ARight) {
-			xToCheck = _hunter._posX + 1;
-		}
+		int reward = performactions();
 		
-		if(yToCheck < 0 || yToCheck >= MAP_HEIGHT || xToCheck < 0 || xToCheck >= MAP_WIDTH) {
-			reward -= 100;
-			_totalReward += reward;
-			moveagent(_hunter, _hunter._posX, _hunter._posY);
-		} else if(_map[xToCheck][yToCheck] == UNothing) {
-			reward -= 10;
-			_totalReward += reward;
-			moveagent(_hunter, xToCheck, yToCheck);
-		} else if(_map[xToCheck][yToCheck] == UAgent) {
-			reward -= 50;
-			_totalReward += reward;
-			moveagent(_hunter, xToCheck, yToCheck);
-		} else if(_map[xToCheck][yToCheck] == UGoal) {
-			reward += 500;
-			_totalReward += reward;
-			
-			moveagent(_hunter, 1, 1);
-			if(_gamesPlayed % 100 == 0) std::cout << _totalReward << " Reward for Game #" << _gamesPlayed << std::endl;
-			if(_gamesPlayed == 5000) done = true;
-			
-			
-			if(_gamesPlayed < 50) rewards[_gamesPlayed] = _totalReward;
-			_gamesPlayed++;
-			_totalReward = 0;
-		}
-		
+		if(!(loops < 10000)) std::cout << "Loop Limit" << std::endl;
 		// Send Rewards
 		_hunter.SendReward(reward);
 	}
@@ -115,11 +149,11 @@ int main(int argc, char* args[] )
 		init();
 		playgame();
 		
-		std::cout << "Rewards for 50 first games" << std::endl;
+		/*std::cout << "Rewards for 50 first games" << std::endl;
 		std::cout << "------===========------" << std::endl;
 		for(int i = 0; i < 50; i++) {
-			std::cout << "Game #" << i << ": " << rewards[i] << std::endl;
-		}
+			std::cout << "Game #" << i+1 << ": " << rewards[i] << std::endl;
+		}*/
 	}
 	catch (...) { 
 		std::cout << "Exception Occured" << std::endl;
