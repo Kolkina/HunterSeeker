@@ -43,7 +43,7 @@ int HuntingPolicy::GetAction()
 	return action;
 }
 
-void HuntingPolicy::SendObservation(int id, int value)
+void HuntingPolicy::SendObservation(int id, double value)
 {
 	if(id == OSelfX) {
 		_prevX = _posX;
@@ -53,9 +53,7 @@ void HuntingPolicy::SendObservation(int id, int value)
 		_prevY = _posY;
 		_posY = value;
 	}
-}
-
-void HuntingPolicy::SendReward(double value)
-{
-	_policyMap[_prevX][_prevY][_prevAction] += alpha*(value + gamma*_policyMap[_posX][_posY][GetMaxAction()] - _policyMap[_prevX][_prevY][_prevAction]);
+	else if(id == OReward) {
+		_policyMap[_prevX][_prevY][_prevAction] += alpha*(value + gamma*_policyMap[_posX][_posY][GetMaxAction()] - _policyMap[_prevX][_prevY][_prevAction]);
+	}
 }

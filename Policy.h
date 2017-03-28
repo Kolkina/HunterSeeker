@@ -20,6 +20,7 @@ enum Observation
 {
 	OSelfX,
 	OSelfY,
+	OReward,
 };
 
 class Policy
@@ -30,7 +31,7 @@ class Policy
 		
 	public:
 		virtual int GetAction() = 0;
-		virtual void SendObservation(int id, int val) = 0;
+		virtual void SendObservation(int id, double val) = 0;
 
 };
 

@@ -19,8 +19,7 @@ class HuntingPolicy: public Policy
 	public:
 		HuntingPolicy();
 		int GetAction();
-		void SendObservation(int id, int value);
-		void SendReward(double value);
+		void SendObservation(int id, double value);
 
 
 };

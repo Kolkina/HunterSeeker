@@ -1,6 +1,8 @@
 
 #include "Prey.h"
 
+Prey::Prey() {}
+
 Prey::Prey(Policy* agent)
 {
 	agents[0] = agent;
@@ -11,7 +13,7 @@ int Prey::GetAction()
 	srand(time(NULL));
 	int action = rand() % 4;
 	for(int i = 0; i < NUM_AGENTS; i++) {
-		if(abs(agents[i]->_posX - _posX) < 2 && abs(agents[i]->_posY - _posY) < 2) {
+		if(abs(agents[i]->_posX - _posX) < DETECT_RANGE && abs(agents[i]->_posY - _posY) < DETECT_RANGE) {
 			if(agents[i]->_posX - _posX <= 0 && _posX > 0) {
 				// Agent is left
 				action = ALeft;
@@ -23,14 +25,14 @@ int Prey::GetAction()
 				action = ADown;
 			} else if(agents[i]->_posY - _posY >= 0 && _posY > 0) {
 				// Agent is down
-				action = ADown;
+				action = AUp;
 			}
 		}
 	}
 	return action;
 }
 
-void Prey::SendObservation(int id, int value)
+void Prey::SendObservation(int id, double value)
 {
 	if(id == OSelfX) {
 		_posX = value;

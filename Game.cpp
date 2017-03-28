@@ -32,13 +32,31 @@ void init()
 	}
 	
 	_map[1][1] = UAgent;
-	_map[9][9] = UGoal;
+	_map[5][5] = UGoal;
 	
 	_hunter.SendObservation(OSelfX,1);
 	_hunter.SendObservation(OSelfY,1);
+	prey = Prey(&_hunter);
 	prey.SendObservation(OSelfX,5);
-	prey.SendObservation(OSelfX,5);
+	prey.SendObservation(OSelfY,5);
 
+}
+
+void moveagent(Policy& agent, int newX, int newY)
+{
+	// Store Temps
+	int preX = agent._posX;
+	int preY = agent._posY;
+	
+	// Move Agent
+	agent.SendObservation(OSelfX,newX);
+	agent.SendObservation(OSelfY,newY);
+	
+	// Swap Tiles
+	int preV = _map[preX][preY];
+	_map[preX][preY] = _map[newX][newY];
+	_map[newX][newY] = preV;
+	
 }
 
 void getcheckvalues(int& xcheck, int& ycheck, int action)
@@ -54,12 +72,17 @@ void getcheckvalues(int& xcheck, int& ycheck, int action)
 	}
 }
 
-int performactions()
+int performactions(int& loops, bool& done)
 {
 		int action = prey.GetAction();
 		
 		int xToCheck = prey._posX, yToCheck = prey._posY;
 		
+		if(_gamesPlayed == 500) {
+			std::cout << "Hunter:" << _hunter._posX << ":" << _hunter._posY << std::endl;
+			std::cout << "Prey:" << prey._posX << ":" << prey._posY << std::endl;
+			std::cout << "Prey Action:" << action << std::endl;
+		}		
 		getcheckvalues(xToCheck, yToCheck, action);
 		
 		
@@ -77,7 +100,11 @@ int performactions()
 		xToCheck = _hunter._posX, yToCheck = _hunter._posY;
 		
 		getcheckvalues(xToCheck, yToCheck, action);
-		
+		if(_gamesPlayed == 500) {
+			std::cout << "Hunter:" << _hunter._posX << ":" << _hunter._posY << std::endl;
+			std::cout << "Prey:" << prey._posX << ":" << prey._posY << std::endl;
+			std::cout << "Hunter Action:" << action << std::endl;
+		}
 		
 		if(yToCheck < 0 || yToCheck >= MAP_HEIGHT || xToCheck < 0 || xToCheck >= MAP_WIDTH) {
 			reward -= 100;
@@ -96,7 +123,7 @@ int performactions()
 			_totalReward += reward;
 			moveagent(_hunter, 1, 1);
 			moveagent(prey,5,5);
-			//if(_gamesPlayed % 100 == 0) std::cout << _totalReward << " Reward for Game #" << _gamesPlayed << std::endl;
+			if(_gamesPlayed % 100 == 0) std::cout << _totalReward << " Reward for Game #" << _gamesPlayed << std::endl;
 			if(_gamesPlayed == 5000) done = true;
 			if(_gamesPlayed < 50) rewards[_gamesPlayed] = _totalReward;
 			_gamesPlayed++;
@@ -104,23 +131,6 @@ int performactions()
 			loops = 0;
 		}
 		return reward;
-}
-
-void moveagent(Policy& agent, int newX, int newY)
-{
-	// Store Temps
-	int prex = agent._posX;
-	int prey = agent._posY;
-	
-	// Move Agent
-	agent.SendObservation(OSelfX,newX);
-	agent.SendObservation(OSelfY,newY);
-	
-	// Swap Tiles
-	int prev = _map[prex][prey];
-	_map[prex][prey] = _map[newX][newY];
-	_map[newX][newY] = prev;
-	
 }
 
 void playgame()
@@ -135,11 +145,11 @@ void playgame()
 	{
 		loops++;
 		
-		int reward = performactions();
+		int reward = performactions(loops,done);
 		
 		if(!(loops < 10000)) std::cout << "Loop Limit" << std::endl;
 		// Send Rewards
-		_hunter.SendReward(reward);
+		_hunter.SendObservation(OReward, reward);
 	}
 }
 

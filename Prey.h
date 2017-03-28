@@ -6,15 +6,17 @@
 #include <time.h>
 
 #define NUM_AGENTS 1
+#define DETECT_RANGE 3
 
 class Prey : public Policy
 {
 	Policy* agents[NUM_AGENTS];
 
 	public:
+		Prey();
 		Prey(Policy*);
 		int GetAction();
-		void SendObservation(int id, int val);
+		void SendObservation(int id, double val);
 
 };
 
