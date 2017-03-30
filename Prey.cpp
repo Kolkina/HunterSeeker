@@ -3,9 +3,11 @@
 
 Prey::Prey() {}
 
-Prey::Prey(Policy* agent)
+Prey::Prey(Policy* agent[])
 {
-	agents[0] = agent;
+	for(int i = 0; i < NUM_AGENTS; i++) {
+		agents[i] = agent[i];
+	}
 }
 
 int Prey::GetAction()

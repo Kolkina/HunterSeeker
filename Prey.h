@@ -14,7 +14,7 @@ class Prey : public Policy
 
 	public:
 		Prey();
-		Prey(Policy*);
+		Prey(Policy*[]);
 		int GetAction();
 		void SendObservation(int id, double val);
 
