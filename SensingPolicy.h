@@ -12,7 +12,7 @@ class SensingPolicy : public Policy
 
 	public:
 		int GetAction();
-		void SendObservation(int id, int val);
+		void SendObservation(int id, double val);
 		int GetCommunication();
 
 };

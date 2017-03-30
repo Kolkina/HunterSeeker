@@ -1,5 +1,5 @@
 #Files to compile
-OBJ = Game.cpp HuntingPolicy.cpp Prey.cpp
+OBJ = Game.cpp HuntingPolicy.cpp Prey.cpp SensingPolicy.cpp
 
 #Compiler Settings
 CC = g++

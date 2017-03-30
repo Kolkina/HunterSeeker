@@ -1,6 +1,7 @@
 
 #include "Policy.h"
 #include "HuntingPolicy.h"
+#include "SensingPolicy.h"
 #include "Prey.h"
 #include <iostream>
 
@@ -11,6 +12,7 @@ int rewards[50];
 
 // Agents
 HuntingPolicy _hunter;
+HuntingPolicy _sensor;
 Prey prey;
 
 enum Objects
@@ -33,6 +35,8 @@ void init()
 	
 	_map[1][1] = UAgent;
 	_map[5][5] = UGoal;
+	
+	//_sensor.GetAction();
 	
 	_hunter.SendObservation(OSelfX,1);
 	_hunter.SendObservation(OSelfY,1);
@@ -79,6 +83,7 @@ int performactions(int& loops, bool& done)
 		int xToCheck = prey._posX, yToCheck = prey._posY;
 		
 		if(_gamesPlayed == 500) {
+			std::cout << "======" << std::endl;
 			std::cout << "Hunter:" << _hunter._posX << ":" << _hunter._posY << std::endl;
 			std::cout << "Prey:" << prey._posX << ":" << prey._posY << std::endl;
 			std::cout << "Prey Action:" << action << std::endl;
@@ -95,13 +100,19 @@ int performactions(int& loops, bool& done)
 		} else if(_map[xToCheck][yToCheck] == UGoal) {
 		}
 		
+		_hunter.SendObservation(OPreyX, prey._posX);
+		_hunter.SendObservation(OPreyY, prey._posY);
+		_sensor.SendObservation(OPreyX, prey._posX);
+		_sensor.SendObservation(OPreyY, prey._posY);
+		
 		action = _hunter.GetAction();
 		int reward = 0;
 		xToCheck = _hunter._posX, yToCheck = _hunter._posY;
 		
 		getcheckvalues(xToCheck, yToCheck, action);
-		if(_gamesPlayed == 500) {
-			std::cout << "Hunter:" << _hunter._posX << ":" << _hunter._posY << std::endl;
+		if(_gamesPlayed == 0 && false) {
+			std::cout << "======" << std::endl;
+			//std::cout << "Hunter:" << _hunter._posX << ":" << _hunter._posY << ":" << _hunter._preyX << std::endl;
 			std::cout << "Prey:" << prey._posX << ":" << prey._posY << std::endl;
 			std::cout << "Hunter Action:" << action << std::endl;
 		}
@@ -123,7 +134,7 @@ int performactions(int& loops, bool& done)
 			_totalReward += reward;
 			moveagent(_hunter, 1, 1);
 			moveagent(prey,5,5);
-			if(_gamesPlayed % 100 == 0) std::cout << _totalReward << " Reward for Game #" << _gamesPlayed << std::endl;
+			//if(_gamesPlayed % 100 == 0) std::cout << _totalReward << " Reward for Game #" << _gamesPlayed << std::endl;
 			if(_gamesPlayed == 5000) done = true;
 			if(_gamesPlayed < 50) rewards[_gamesPlayed] = _totalReward;
 			_gamesPlayed++;
@@ -140,14 +151,14 @@ void playgame()
 	// If no movement required, call for same location.
 	
 	bool done = false;
-	int loops = 0;
-	while(!done && loops < 10000) 
+	int loops = 0, limit = 1e7;
+	while(!done && loops < limit) 
 	{
 		loops++;
 		
 		int reward = performactions(loops,done);
 		
-		if(!(loops < 10000)) std::cout << "Loop Limit" << std::endl;
+		if(!(loops < limit)) std::cout << "Loop Limit" << std::endl;
 		// Send Rewards
 		_hunter.SendObservation(OReward, reward);
 	}

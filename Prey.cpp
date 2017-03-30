@@ -14,12 +14,12 @@ int Prey::GetAction()
 	int action = rand() % 4;
 	for(int i = 0; i < NUM_AGENTS; i++) {
 		if(abs(agents[i]->_posX - _posX) < DETECT_RANGE && abs(agents[i]->_posY - _posY) < DETECT_RANGE) {
-			if(agents[i]->_posX - _posX <= 0 && _posX > 0) {
+			if(agents[i]->_posX - _posX <= 0 && _posX < MAP_WIDTH-1) {
 				// Agent is left
-				action = ALeft;
-			} else if(agents[i]->_posX - _posX >= 0 && _posX < MAP_WIDTH-1) {
-				// Agent is right
 				action = ARight;
+			} else if(agents[i]->_posX - _posX >= 0 && _posX > 0) {
+				// Agent is right
+				action = ALeft;
 			} else if(agents[i]->_posY - _posY <= 0 && _posY < MAP_HEIGHT-1) {
 				// Agent is up
 				action = ADown;

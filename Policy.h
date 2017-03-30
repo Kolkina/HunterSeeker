@@ -20,6 +20,8 @@ enum Observation
 {
 	OSelfX,
 	OSelfY,
+	OPreyX,
+	OPreyY,
 	OReward,
 };
 

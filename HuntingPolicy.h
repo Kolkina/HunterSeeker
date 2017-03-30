@@ -9,8 +9,9 @@
 
 class HuntingPolicy: public Policy
 {
-	double _policyMap[MAP_WIDTH][MAP_HEIGHT][ACTIONS];	
+	double _policyMap[MAP_WIDTH][MAP_HEIGHT][MAP_WIDTH][MAP_HEIGHT][MAP_WIDTH][MAP_HEIGHT][ACTIONS];	
 	int _prevX, _prevY, _prevAction;
+	int _preyX, _preyY, _otherX, _otherY;
 	double alpha, gamma;
 	
 	int GetMaxAction();
