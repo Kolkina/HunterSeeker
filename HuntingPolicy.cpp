@@ -3,17 +3,19 @@
 
 HuntingPolicy::HuntingPolicy() : _preyX(-1), _preyY(-1), _otherX(-1), _otherY(-1)
 {
-	
 	for(int i = 0; i < MAP_WIDTH*MAP_WIDTH*MAP_WIDTH; i++) {
 		for(int j = 0; j < MAP_HEIGHT*MAP_HEIGHT*MAP_HEIGHT; j++) {
 			for(int k = 0; k < ACTIONS; k++) {
-				_policyMap[i/(MAP_WIDTH*MAP_WIDTH)][j/(MAP_HEIGHT*MAP_HEIGHT)][i/MAP_WIDTH % MAP_WIDTH][j/MAP_HEIGHT % MAP_HEIGHT][i % MAP_WIDTH][j % MAP_HEIGHT][k] = 0;
+				_policyMap	[i/(MAP_WIDTH*MAP_WIDTH)][j/(MAP_HEIGHT*MAP_HEIGHT)]
+							[i/MAP_WIDTH % MAP_WIDTH][j/MAP_HEIGHT % MAP_HEIGHT]
+							[i % MAP_WIDTH][j % MAP_HEIGHT]
+							[k] = 0;
 			}
 		}
 	}
 	
-	alpha = 0.9;
-	gamma = 0.9;
+	alpha = 0.7;
+	gamma = 0.5;
 	
 }
 
@@ -32,7 +34,6 @@ int HuntingPolicy::GetMaxAction()
 
 int HuntingPolicy::GetAction()
 {
-	srand(time(NULL));
 	int action = -1;
 	if(rand() % 100 < eps) {
 		int sel = rand() % ACTIONS;
@@ -97,7 +98,22 @@ void HuntingPolicy::SendObservation(int id, double value)
 																	alpha*(value + gamma*
 																	_policyMap[_posX][_posY][_otherX][_otherY][_preyX][_preyY][GetMaxAction()] -
 																	_policyMap[_prevX][_prevY][_prevOtherX][_prevOtherY][_prevPreyX][_prevPreyY][_prevAction]);
-			if(_policyMap[_prevX][_prevY][_prevOtherX][_prevOtherY][_prevPreyX][_prevPreyY][_prevAction] > 1000) _policyMap[_prevX][_prevY][_prevOtherX][_prevOtherY][_prevPreyX][_prevPreyY][_prevAction] = -1e9;
+																	
+			if(_policyMap[_prevX][_prevY][_prevOtherX][_prevOtherY][_prevPreyX][_prevPreyY][_prevAction] > GOAL_REWARD*2) _policyMap[_prevX][_prevY][_prevOtherX][_prevOtherY][_prevPreyX][_prevPreyY][_prevAction] = -1e9;
 			break;
 	}
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+

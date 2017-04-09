@@ -12,7 +12,6 @@ Prey::Prey(Policy* agent[])
 
 int Prey::GetAction()
 {
-	srand(time(NULL));
 	int action = rand() % 4;
 	for(int i = 0; i < NUM_AGENTS; i++) {
 		if(abs(agents[i]->_posX - _posX) < DETECT_RANGE && abs(agents[i]->_posY - _posY) < DETECT_RANGE) {

@@ -4,16 +4,17 @@
 #include <vector>
 #include <string>
 
-#define MAP_WIDTH 10
-#define MAP_HEIGHT 10
+#define MAP_WIDTH 4
+#define MAP_HEIGHT 4
 #define ACTIONS 4
+#define GOAL_REWARD 50000
 
 enum Action
 {
-	AUp,
-	ADown,
-	ALeft,
-	ARight
+	AUp = 0,
+	ADown = 1,
+	ALeft = 2,
+	ARight = 3,
 };
 
 enum Observation
@@ -25,7 +26,9 @@ enum Observation
 	OPreyX,
 	OPreyY,
 	OReward,
+	OObsReward,
 };
+
 
 class Policy
 {
