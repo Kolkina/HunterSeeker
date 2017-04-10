@@ -10,6 +10,7 @@
 #define SENSING_WIDTH 5
 #define SENSING_HEIGHT 5
 #define COM_ACTIONS 4
+#define SIMPLE_COMM true
 
 
 enum Communication
@@ -23,14 +24,25 @@ enum Communication
 class SensingPolicy : public Policy
 {
 
+#if SIMPLE_COMM == true
+	double _policyMap 	[MAP_HEIGHT][MAP_WIDTH] // Prey Position
+						[MAP_HEIGHT][MAP_WIDTH] // Hunter Position
+						[COM_ACTIONS];
+#else
 	double _policyMap[SENSING_WIDTH][SENSING_HEIGHT][COM_ACTIONS];
+#endif
 	int _prevX, _prevY, _prevAction;
+#if SIMPLE_COMM == true
+	int _otherX, _otherY, _prevOtherX, _prevOtherY;
+#endif
+	
 	double alpha, gamma;
 
 	int GetMaxAction();
 	
 	public:
 		SensingPolicy();
+		void printpolicy();
 		
 		int rngness[100];
 		int eps = 10;

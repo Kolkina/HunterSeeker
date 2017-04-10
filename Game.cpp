@@ -7,13 +7,14 @@
 #include <time.h>
 #include <stdlib.h>
 
-#define TARGET_GAMES 50000
+#define TARGET_GAMES 500000
 
 // Game Values
 int _map[MAP_WIDTH][MAP_HEIGHT];
 int _gamesPlayed, _totalReward;
 int rewards[50];
 int rewards_end[5];
+int messages_end[5][4];
 int _width = MAP_WIDTH, _height = MAP_HEIGHT;
 
 // Agents
@@ -30,7 +31,34 @@ enum Objects
 };
 
 #define END_EPS 5
-#define BEGIN_EPS 10
+#define BEGIN_EPS 25
+
+void init_map()
+{
+	_map[_hunter._posX][_hunter._posY] = UNothing;
+	_map[_sensor._posX][_sensor._posY] = UNothing;
+	_map[prey._posX][prey._posY] = UNothing;
+	_map[1][1] = UAgent;
+	_map[MAP_WIDTH/2][MAP_HEIGHT/2] = UGoal;
+	_map[MAP_WIDTH-1][MAP_HEIGHT-1] = UAgent;
+	_hunter.SendObservation(OSelfX,1);
+	_hunter.SendObservation(OSelfY,1);
+	_hunter.SendObservation(OSelfX,MAP_WIDTH);
+	_hunter.SendObservation(OSelfY,MAP_HEIGHT);
+	_sensor.SendObservation(OSelfX,MAP_WIDTH-1);
+	_sensor.SendObservation(OSelfY,MAP_HEIGHT-1);
+	prey.SendObservation(OSelfX,MAP_WIDTH/2);
+	prey.SendObservation(OSelfY,MAP_HEIGHT/2);
+#if SIMPLE_COMM == true
+	_sensorvision.SendObservation(OOtherX,_hunter._posX);
+	_sensorvision.SendObservation(OOtherY,_hunter._posY);
+	_sensorvision.SendObservation(OPreyX,prey._posX);
+	_sensorvision.SendObservation(OPreyY,prey._posY);
+#else
+	_sensorvision.SendObservation(OPreyX,2);
+	_sensorvision.SendObservation(OPreyY,2);
+#endif
+}
 
 void init()
 {
@@ -89,6 +117,7 @@ void init_extra(int w, int h)
 	_map[1][1] = UAgent;
 	_map[w/2][h/2] = UGoal;
 	_map[w-1][h-1] = UAgent;
+	_sensor.isSensor = true;
 
 	
 	_hunter.eps = BEGIN_EPS;
@@ -148,11 +177,81 @@ void getcheckvalues(int& xcheck, int& ycheck, int action)
 
 #define DISPLAY_MOVES false
 #define TELL_PREY true
+#define PERFORM_COMM false
 #define TELL_OTHER false
 #define SPLIT_REWARD true
 #define BOTH_HUNTERS false
+
 bool debug_print = false;
 
+int nullmessages = 0, xmessages = 0, ymessages = 0, xymessages = 0;
+
+void performcommunication()
+{
+#if SIMPLE_COMM == true
+	//_sensorvision.SendObservation(OPreyX, prey._posX);
+	//_sensorvision.SendObservation(OPreyY, prey._posY);
+	//_sensorvision.SendObservation(OOtherX, _hunter._posX);
+	//_sensorvision.SendObservation(OOtherY, _hunter._posY);
+	_sensorvision.SendObservation(OPreyX, 0);
+	_sensorvision.SendObservation(OPreyY, 0);
+	_sensorvision.SendObservation(OOtherX, 0);
+	_sensorvision.SendObservation(OOtherY, 0);	
+#else
+	int xabs = (SENSING_WIDTH - 1)/2;
+	int yabs = (SENSING_HEIGHT - 1)/2;
+	
+	int relx = _sensor._posX - xabs;
+	int rely = _sensor._posY - yabs;
+	
+	relx = prey._posX - relx;
+	rely = prey._posY - rely;
+	
+	if(relx >= 0 && relx < SENSING_WIDTH && rely >= 0 && rely < SENSING_HEIGHT) {
+		_sensorvision.SendObservation(OPreyX, relx);
+		_sensorvision.SendObservation(OPreyY, rely);
+	}
+	else {
+		_sensorvision.SendObservation(OPreyX, xabs+1);
+		_sensorvision.SendObservation(OPreyY, yabs+1);		
+	}
+#endif	
+	
+	
+	int action = _sensorvision.GetAction();
+	switch (action) {
+		case CPreyX:
+			xmessages++;
+			_hunter.SendObservation(OPreyX,prey._posX);
+			_sensorvision.SendObservation(OReward, -2);
+			if(_gamesPlayed >= TARGET_GAMES-4) messages_end[4-(TARGET_GAMES-_gamesPlayed)][1]++;
+			break;
+		case CPreyY:
+			ymessages++;
+			_hunter.SendObservation(OPreyY,prey._posY);
+			_sensorvision.SendObservation(OReward, -2);
+			if(_gamesPlayed >= TARGET_GAMES-4) messages_end[4-(TARGET_GAMES-_gamesPlayed)][2]++;			
+			break;
+		case CPreyXY:
+			xymessages++;
+			_hunter.SendObservation(OPreyX,prey._posX);
+			_hunter.SendObservation(OPreyY,prey._posY);
+			_sensorvision.SendObservation(OReward, -3);
+			if(_gamesPlayed >= TARGET_GAMES-4) messages_end[4-(TARGET_GAMES-_gamesPlayed)][3]++;			
+			break;
+		default:
+			nullmessages++;
+			_sensorvision.SendObservation(OReward,-1);
+			if(_gamesPlayed >= TARGET_GAMES-4) messages_end[4-(TARGET_GAMES-_gamesPlayed)][0]++;			
+			break;
+	}
+		if(debug_print) {
+		std::cout << "======" << std::endl;
+		std::cout << "Vision:" << _sensor._posX << ":" << _sensor._posY << std::endl;
+		std::cout << "Vision Action:" << action << std::endl;
+	}
+	
+}
 int performactions(int& loops, bool& done)
 {
 	int action = prey.GetAction();
@@ -178,11 +277,18 @@ int performactions(int& loops, bool& done)
 	if(debug_print) {
 		std::cout << "Prey After:" << prey._posX << ":" << prey._posY << std::endl;
 	}
-
+#if TELL_PREY == true
 	_hunter.SendObservation(OPreyX, prey._posX);
 	_hunter.SendObservation(OPreyY, prey._posY);
+#else
+	_hunter.SendObservation(OPreyX, MAP_WIDTH);
+	_hunter.SendObservation(OPreyY, MAP_HEIGHT);	
+#endif
 	_sensor.SendObservation(OPreyX, prey._posX);
 	_sensor.SendObservation(OPreyY, prey._posY);
+#if PERFORM_COMM == true
+	performcommunication();
+#endif
 #if TELL_OTHER == true
 	_sensor.SendObservation(OOtherX, _hunter._posX);
 	_sensor.SendObservation(OOtherY, _hunter._posY);
@@ -225,11 +331,13 @@ int performactions(int& loops, bool& done)
 	} else if( _map[xToCheck][yToCheck] == UGoal) {//_map[xToCheck][yToCheck] == UGoal) {xToCheck == prey._posX && yToCheck == prey._posY 
 		reward += GOAL_REWARD;
 		_totalReward += reward;
-		moveagent(_hunter, 1, 1);
-		moveagent(prey,_width/2,_height/2);
-		moveagent(_sensor, _width-1, _height-1);
-		_sensorvision.SendObservation(OPreyX,2);
-		_sensorvision.SendObservation(OPreyY,2);
+		//_hunter.SendObservation(OReward, reward);
+		init_map();
+		// moveagent(_hunter, 1, 1);
+		// moveagent(prey,_width/2,_height/2);
+		// moveagent(_sensor, _width-1, _height-1);
+		// _sensorvision.SendObservation(OPreyX,2);
+		// _sensorvision.SendObservation(OPreyY,2);
 		_sensorvision.SendObservation(OReward,reward);
 		loops = 0;
 	}
@@ -317,60 +425,8 @@ int performactions(int& loops, bool& done)
 	return reward;
 }
 
-int nullmessages = 0, xmessages = 0, ymessages = 0, xymessages = 0;
 
-void performcommunication()
-{
-	int xabs = (SENSING_WIDTH - 1)/2;
-	int yabs = (SENSING_HEIGHT - 1)/2;
-	
-	int relx = _sensor._posX - xabs;
-	int rely = _sensor._posY - yabs;
-	
-	relx = prey._posX - relx;
-	rely = prey._posY - rely;
-	
-	if(relx >= 0 && relx < SENSING_WIDTH && rely >= 0 && rely < SENSING_HEIGHT) {
-		_sensorvision.SendObservation(OPreyX, relx);
-		_sensorvision.SendObservation(OPreyY, rely);
-	}
-	else {
-		_sensorvision.SendObservation(OPreyX, xabs+1);
-		_sensorvision.SendObservation(OPreyY, yabs+1);		
-	}
-	
-	
-	
-	int action = _sensorvision.GetAction();
-	switch (action) {
-		case CPreyX:
-			xmessages++;
-			_hunter.SendObservation(OPreyX,prey._posX);
-			_sensorvision.SendObservation(OReward, 10);
-			break;
-		case CPreyY:
-			ymessages++;
-			_hunter.SendObservation(OPreyY,prey._posY);
-			_sensorvision.SendObservation(OReward, 10);
-			break;
-		case CPreyXY:
-			xymessages++;
-			_hunter.SendObservation(OPreyX,prey._posX);
-			_hunter.SendObservation(OPreyY,prey._posY);
-			_sensorvision.SendObservation(OReward, 30);
-			break;
-		default:
-			nullmessages++;
-			_sensorvision.SendObservation(OReward,-50);
-			break;
-	}
-		if(debug_print) {
-		std::cout << "======" << std::endl;
-		std::cout << "Vision:" << _sensor._posX << ":" << _sensor._posY << std::endl;
-		std::cout << "Vision Action:" << action << std::endl;
-	}
-	
-}
+
 
 void playgame()
 {
@@ -424,11 +480,19 @@ int main(int argc, char* args[] )
 		std::cout << "------===========------" << std::endl;
 		for(int i = 0; i < 5; i++) {
 			std::cout << "Game #" << i+1 << ": " << rewards_end[i] << std::endl;
-		}		
+			std::cout << "Messages for #" << i+1 << std::endl;
+			std::cout << "\tNull Messages: \t\t" << messages_end[i][0] << std::endl;
+			std::cout << "\tX Only Messages: \t" << messages_end[i][1] << std::endl;
+			std::cout << "\tY Only Messages: \t" << messages_end[i][2] << std::endl;
+			std::cout << "\tXY Messages: \t\t" << messages_end[i][3] << std::endl;			
+		}
+		std::cout << "Total Messages" << std::endl;		
+		std::cout << "------===========------" << std::endl;
 		std::cout << "Null Messages: \t\t" << nullmessages << std::endl;
 		std::cout << "X Only Messages: \t" << xmessages << std::endl;
 		std::cout << "Y Only Messages: \t" << ymessages << std::endl;
 		std::cout << "XY Messages: \t\t" << xymessages << std::endl;
+		_sensorvision.printpolicy();
 		//for(int i = 0; i < 100; i++) {
 		//	std::cout << "RNG #" << i << ": " << _sensorvision.rngness[i] << std::endl;
 		//}*/

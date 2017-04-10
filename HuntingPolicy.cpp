@@ -44,6 +44,16 @@ int HuntingPolicy::GetAction()
 	} else {
 		action = GetMaxAction();
 	}
+	if(_posX == 0 && _posY == 0 && _preyX == 0 && _preyY == 1 && action == ADown && !isSensor && !firstNext) {
+		std::cout << "Next to prey:\t\t";
+		std::cout << "{";
+		for(int k = 0; k < ACTIONS; k++) {
+			std::cout << _policyMap[0][0][4][4][0][1][k] << ", ";
+		}
+		std::cout << "}" << std::endl;
+		wasNext = true;
+		firstNext = true;
+	}	
 	_prevAction = action;
 	return action;
 }
@@ -94,12 +104,35 @@ void HuntingPolicy::SendObservation(int id, double value)
 			break;
 	
 		case OReward :
+			if(_prevX == 0 && _prevY == 0 && _prevPreyX == 0 && _prevPreyY == 1 && _prevAction == ADown && !firstNext && !wasNext) {
+				std::cout << "{";
+				for(int k = 0; k < ACTIONS; k++) {
+					std::cout << _policyMap[0][0][4][4][0][1][k] << ", ";
+				}
+				std::cout << "}" << std::endl;
+				throw -1;
+			}
 			_policyMap[_prevX][_prevY][_prevOtherX][_prevOtherY][_prevPreyX][_prevPreyY][_prevAction] += 	
 																	alpha*(value + gamma*
 																	_policyMap[_posX][_posY][_otherX][_otherY][_preyX][_preyY][GetMaxAction()] -
 																	_policyMap[_prevX][_prevY][_prevOtherX][_prevOtherY][_prevPreyX][_prevPreyY][_prevAction]);
 																	
 			if(_policyMap[_prevX][_prevY][_prevOtherX][_prevOtherY][_prevPreyX][_prevPreyY][_prevAction] > GOAL_REWARD*2) _policyMap[_prevX][_prevY][_prevOtherX][_prevOtherY][_prevPreyX][_prevPreyY][_prevAction] = -1e9;
+			if(wasNext && value > 0) {
+				std::cout << "New policy\t\t";
+				std::cout << "{";
+				for(int k = 0; k < ACTIONS; k++) {
+					std::cout << _policyMap[0][0][4][4][0][1][k] << ", ";
+				}
+				std::cout << "}" << std::endl;
+				std::cout << "Currents:" << std::endl;
+				std::cout << "\t(PosX,PosY):\t(" << _posX << "," << _posY << ")" << std::endl;
+				std::cout << "\t(PreyX,PreyY):\t(" << _preyX << "," << _preyY << ")" << std::endl;
+				std::cout << "Previous:" << std::endl;
+				std::cout << "\t(PosX,PosY):\t(" << _prevX << "," << _prevY << ")" << std::endl;
+				std::cout << "\t(PreyX,PreyY):\t(" << _prevPreyX << "," << _prevPreyY << ")" << std::endl;
+				wasNext = false;
+			}
 			break;
 	}
 }

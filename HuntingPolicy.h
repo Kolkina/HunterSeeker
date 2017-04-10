@@ -19,6 +19,8 @@ class HuntingPolicy: public Policy
 		int _preyX, _preyY, _prevPreyX, _prevPreyY;
 		int _otherX, _otherY, _prevOtherX, _prevOtherY;
 		double alpha, gamma;
+		bool wasNext = false, firstNext = false;
+		bool isSensor = false;
 		
 		int GetMaxAction();
 	
