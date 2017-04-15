@@ -3,7 +3,7 @@ OBJ = Game.cpp HuntingPolicy.cpp Prey.cpp SensingPolicy.cpp
 
 #Compiler Settings
 CC = g++
-CFLAGS = -w -std=c++11
+CFLAGS = -w -std=c++11 -g
 
 #Executable name
 OBJ_NAME = HunterSeeker

@@ -86,7 +86,7 @@ void HuntingPolicy::SendObservation(int id, double value)
 		case OOtherX :
 			_prevOtherX = _otherX;
 			_otherX = value;
-			break;
+			break;	
 			
 		case OOtherY :
 			_prevOtherY = _otherY;
@@ -104,7 +104,7 @@ void HuntingPolicy::SendObservation(int id, double value)
 			break;
 	
 		case OReward :
-			if(_prevX == 0 && _prevY == 0 && _prevPreyX == 0 && _prevPreyY == 1 && _prevAction == ADown && !firstNext && !wasNext) {
+			if(_prevX == 0 && _prevY == 0 && _prevPreyX == 0 && _prevPreyY == 1 && _prevAction == ADown && !firstNext && !wasNext && !isSensor) {
 				std::cout << "{";
 				for(int k = 0; k < ACTIONS; k++) {
 					std::cout << _policyMap[0][0][4][4][0][1][k] << ", ";

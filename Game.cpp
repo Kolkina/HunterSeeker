@@ -43,8 +43,8 @@ void init_map()
 	_map[MAP_WIDTH-1][MAP_HEIGHT-1] = UAgent;
 	_hunter.SendObservation(OSelfX,1);
 	_hunter.SendObservation(OSelfY,1);
-	_hunter.SendObservation(OSelfX,MAP_WIDTH);
-	_hunter.SendObservation(OSelfY,MAP_HEIGHT);
+	_hunter.SendObservation(OPreyX,MAP_WIDTH);
+	_hunter.SendObservation(OPreyY,MAP_HEIGHT);
 	_sensor.SendObservation(OSelfX,MAP_WIDTH-1);
 	_sensor.SendObservation(OSelfY,MAP_HEIGHT-1);
 	prey.SendObservation(OSelfX,MAP_WIDTH/2);
@@ -442,7 +442,7 @@ void playgame()
 		loops++;
 		if(float(clock() - begin) / CLOCKS_PER_SEC > 10) {
 			begin = clock();
-			//std::cout << "Games Played so far: " << _gamesPlayed << std::endl;
+			std::cout << "Games Played so far: " << _gamesPlayed << std::endl;
 		}
 		
 		performactions(loops,done);
