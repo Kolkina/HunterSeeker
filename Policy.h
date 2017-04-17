@@ -6,8 +6,8 @@
 
 #define MAP_WIDTH 4
 #define MAP_HEIGHT 4
-#define ACTIONS 4
-#define GOAL_REWARD 50000
+#define ACTIONS 5
+#define GOAL_REWARD 500
 
 enum Action
 {
@@ -15,6 +15,7 @@ enum Action
 	ADown = 1,
 	ALeft = 2,
 	ARight = 3,
+	ANothing = 4,
 };
 
 enum Observation

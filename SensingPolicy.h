@@ -16,9 +16,9 @@
 enum Communication
 {
 	CNothing,
+	CPreyXY,
 	CPreyX,
 	CPreyY,
-	CPreyXY,
 };
 
 class SensingPolicy : public Policy

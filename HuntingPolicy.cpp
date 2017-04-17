@@ -44,7 +44,7 @@ int HuntingPolicy::GetAction()
 	} else {
 		action = GetMaxAction();
 	}
-	if(_posX == 0 && _posY == 0 && _preyX == 0 && _preyY == 1 && action == ADown && !isSensor && !firstNext) {
+	if(_posX == 0 && _posY == 0 && _preyX == 0 && _preyY == 1 && action == ADown && !isSensor && !firstNext && false) {
 		std::cout << "Next to prey:\t\t";
 		std::cout << "{";
 		for(int k = 0; k < ACTIONS; k++) {
@@ -60,13 +60,11 @@ int HuntingPolicy::GetAction()
 
 void HuntingPolicy::PrintPolicy()
 {
-	for(int i = 0; i < MAP_WIDTH*MAP_WIDTH*MAP_WIDTH; i++) {
-		for(int j = 0; j < MAP_HEIGHT*MAP_HEIGHT*MAP_HEIGHT; j++) {
-			for(int k = 0; k < ACTIONS; k++) {
-				std::cout << _policyMap[i/(MAP_WIDTH*MAP_WIDTH)][j/(MAP_HEIGHT*MAP_HEIGHT)][i/MAP_WIDTH % MAP_WIDTH][j/MAP_HEIGHT % MAP_HEIGHT][i % MAP_WIDTH][j % MAP_HEIGHT][k] << std::endl;
-			}
-		}
+	std::cout << "{";
+	for(int k = 0; k < ACTIONS; k++) {
+		std::cout << _policyMap[_posX][_posY][_otherX][_otherY][_preyX][_preyY][k] << ",";
 	}
+	std::cout << "}" << std::endl;
 }
 
 void HuntingPolicy::SendObservation(int id, double value)
@@ -85,21 +83,25 @@ void HuntingPolicy::SendObservation(int id, double value)
 	
 		case OOtherX :
 			_prevOtherX = _otherX;
+			//_prevOtherX = value;
 			_otherX = value;
 			break;	
 			
 		case OOtherY :
 			_prevOtherY = _otherY;
+			//_prevOtherY = value;
 			_otherY = value;
 			break;
 	
 		case OPreyX :
 			_prevPreyX = _preyX;
+			//_prevPreyX = value;
 			_preyX = value;
 			break;
 	
 		case OPreyY :
 			_prevPreyY = _preyY;
+			//_prevPreyY = value;
 			_preyY = value;
 			break;
 	
@@ -118,7 +120,7 @@ void HuntingPolicy::SendObservation(int id, double value)
 																	_policyMap[_prevX][_prevY][_prevOtherX][_prevOtherY][_prevPreyX][_prevPreyY][_prevAction]);
 																	
 			if(_policyMap[_prevX][_prevY][_prevOtherX][_prevOtherY][_prevPreyX][_prevPreyY][_prevAction] > GOAL_REWARD*2) _policyMap[_prevX][_prevY][_prevOtherX][_prevOtherY][_prevPreyX][_prevPreyY][_prevAction] = -1e9;
-			if(wasNext && value > 0) {
+			if(wasNext && value > 0 && false) {
 				std::cout << "New policy\t\t";
 				std::cout << "{";
 				for(int k = 0; k < ACTIONS; k++) {

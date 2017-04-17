@@ -15,11 +15,11 @@ class HuntingPolicy: public Policy
 							[MAP_WIDTH+1][MAP_HEIGHT+1] // Other Positon
 							[MAP_WIDTH+1][MAP_HEIGHT+1] // Prey Position
 							[ACTIONS];	
-		int _prevX, _prevY, _prevAction;
+		int _prevX, _prevY, _prevAction = ANothing;
 		int _preyX, _preyY, _prevPreyX, _prevPreyY;
 		int _otherX, _otherY, _prevOtherX, _prevOtherY;
 		double alpha, gamma;
-		bool wasNext = false, firstNext = false;
+		bool wasNext = true, firstNext = true;
 		bool isSensor = false;
 		
 		int GetMaxAction();
